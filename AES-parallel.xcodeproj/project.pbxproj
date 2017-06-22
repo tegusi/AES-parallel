@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B0C701AF1EFBB35C00E1911F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B0C701AE1EFBB35C00E1911F /* main.cpp */; };
+		B0C701B71EFBB3CC00E1911F /* aes256.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B0C701B51EFBB3CC00E1911F /* aes256.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +26,8 @@
 /* Begin PBXFileReference section */
 		B0C701AB1EFBB35C00E1911F /* AES-parallel */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "AES-parallel"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B0C701AE1EFBB35C00E1911F /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		B0C701B51EFBB3CC00E1911F /* aes256.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = aes256.cpp; sourceTree = "<group>"; };
+		B0C701B61EFBB3CC00E1911F /* aes256.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = aes256.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +61,8 @@
 			isa = PBXGroup;
 			children = (
 				B0C701AE1EFBB35C00E1911F /* main.cpp */,
+				B0C701B51EFBB3CC00E1911F /* aes256.cpp */,
+				B0C701B61EFBB3CC00E1911F /* aes256.hpp */,
 			);
 			path = "AES-parallel";
 			sourceTree = "<group>";
@@ -120,6 +125,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B0C701AF1EFBB35C00E1911F /* main.cpp in Sources */,
+				B0C701B71EFBB3CC00E1911F /* aes256.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
