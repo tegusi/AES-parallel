@@ -249,7 +249,7 @@ void aes256_done(aes256_context *ctx)
 } /* aes256_done */
 
 /* -------------------------------------------------------------------------- */
-// The main part of encryption (each seperate task)
+//以下正片（计算一个group的扩展密钥）
 void aes256_encrypt_ecb(aes256_context *ctx, uint8_t *buf)
 {
     uint8_t i, rcon = 1;
@@ -274,6 +274,7 @@ void aes256_encrypt_ecb(aes256_context *ctx, uint8_t *buf)
 } /* aes256_encrypt */
 
 /* -------------------------------------------------------------------------- */
+//uint8为unsigned char(字节）
 static void ctr_inc_ctr(uint8_t *val)
 {
     if ( val != NULL )
@@ -300,7 +301,7 @@ static void ctr_clock_keystream(aes256_context *ctx, uint8_t *ks)
         //*每一步加一(这里应该先算出来存在数组里以便kernel调用）*//
         ctr_inc_ctr(&ctx->blk.ctr[0]);
     }
-    
+    //结果存在ks里面
 } /* ctr_clock_keystream */
 
 /* -------------------------------------------------------------------------- */
