@@ -10,6 +10,7 @@
 		B0C701AF1EFBB35C00E1911F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B0C701AE1EFBB35C00E1911F /* main.cpp */; };
 		B0C701B71EFBB3CC00E1911F /* aes256.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B0C701B51EFBB3CC00E1911F /* aes256.cpp */; };
 		B0C701BB1F014E7700E1911F /* aes256-inv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B0C701BA1F014E7700E1911F /* aes256-inv.cpp */; };
+		B0C701BE1F015E9300E1911F /* gen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B0C701BD1F015E9300E1911F /* gen.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -31,6 +32,7 @@
 		B0C701B61EFBB3CC00E1911F /* aes256.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = aes256.hpp; sourceTree = "<group>"; };
 		B0C701B81EFE537F00E1911F /* input.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = input.cpp; sourceTree = "<group>"; };
 		B0C701BA1F014E7700E1911F /* aes256-inv.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "aes256-inv.cpp"; sourceTree = "<group>"; };
+		B0C701BD1F015E9300E1911F /* gen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gen.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +67,7 @@
 			children = (
 				B0C701AE1EFBB35C00E1911F /* main.cpp */,
 				B0C701B81EFE537F00E1911F /* input.cpp */,
+				B0C701BD1F015E9300E1911F /* gen.cpp */,
 				B0C701B51EFBB3CC00E1911F /* aes256.cpp */,
 				B0C701BA1F014E7700E1911F /* aes256-inv.cpp */,
 				B0C701B61EFBB3CC00E1911F /* aes256.hpp */,
@@ -131,6 +134,7 @@
 			files = (
 				B0C701BB1F014E7700E1911F /* aes256-inv.cpp in Sources */,
 				B0C701AF1EFBB35C00E1911F /* main.cpp in Sources */,
+				B0C701BE1F015E9300E1911F /* gen.cpp in Sources */,
 				B0C701B71EFBB3CC00E1911F /* aes256.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
