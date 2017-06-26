@@ -13,6 +13,25 @@
 
 #define UNUSED_    __attribute__((unused))
 
+int read_sequence (
+                   char    *s,          /* File name */
+                   unsigned char  **a, /* Array name */
+                   int     *n)          /* Length of plain text */
+{
+    FILE    *fptr;          /* Input file pointer */
+    
+    fptr = fopen (s, "r");
+    if (fptr == NULL) {
+        printf("Error in reading text.");
+        return 1;
+    }
+    fread (n, sizeof(int), 1, fptr);
+    *a = (unsigned char*)malloc((sizeof(unsigned char)) * (*n));
+    fread (*a, sizeof(unsigned char), *n, fptr);
+    fclose (fptr);
+    return 0;
+}
+
 void dump(char *s, uint8_t *buf, size_t sz);
 int mem_isequal(const uint8_t *x, const uint8_t *y, size_t sz);
 
@@ -30,6 +49,7 @@ static const uint8_t AES256_TV[] = {
     0xea, 0xfc, 0x49, 0x90, 0x4b, 0x49, 0x60, 0x89
 };
 
+int length;
 
 int main (UNUSED_ int argc, UNUSED_ char *argv[])
 {
@@ -39,13 +59,14 @@ int main (UNUSED_ int argc, UNUSED_ char *argv[])
         0xAA, 0x62, 0xD9, 0xF8, 0x05, 0x53, 0x2E, 0xDF,
         0xF1, 0xEE, 0xD6, 0x87, 0xFB, 0x54, 0x15, 0x3D
     };
-    uint8_t buf[] = {
-        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-        0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
-        0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
-        0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
-        0x20, 0x21, 0x22, 0x23
-    };
+    uint8_t *buf = nullptr;
+//    uint8_t buf[] = {
+//        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+//        0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+//        0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+//        0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
+//        0x20, 0x21, 0x22, 0x23,
+//    };
     rfc3686_blk ctr = {
         {0x00, 0x1C, 0xC5, 0xB7},                         /* nonce   */
         {0x51, 0xA5, 0x1D, 0x70, 0xA1, 0xC1, 0x11, 0x48}, /* IV      */
@@ -59,15 +80,16 @@ int main (UNUSED_ int argc, UNUSED_ char *argv[])
      *   First we test CTR
      */
     
+    read_sequence("tmp", &buf, &length);
     printf("# CTR test\n");
-    dump("Text:", buf, sizeof(buf));
+    dump("Text:", buf, length);
     dump("Key:", key, sizeof(key));
     
     aes256_init(&ctx, key);
     aes256_setCtrBlk(&ctx, &ctr);
     
-    aes256_encrypt_ctr(&ctx, buf, sizeof(buf));
-    dump("Result:", buf, sizeof(buf));
+    aes256_encrypt_ctr(&ctx, buf, length);
+    dump("Result:", buf, length);
     rc = mem_isequal(buf, RFC3686_TV9, sizeof(RFC3686_TV9));
     printf("\t^ %s\n", (rc == 0) ? "Ok" : "INVALID" );
     
@@ -109,7 +131,8 @@ void dump(char *s, uint8_t *buf, size_t sz)
     
     printf("%s\n\t", s);
     for (i = 0; i < sz; i++)
-        printf("%02x%s", buf[i], ((i % 16 == 15) && (i < sz - 1)) ? "\n\t" : " ");
+        printf("%02x ",buf[i]);
+//        printf("%02x%s", buf[i], ((i % 16 == 15) && (i < sz - 1)) ? "\n\t" : " ");
     printf("\n");
 } /* dump */
 
