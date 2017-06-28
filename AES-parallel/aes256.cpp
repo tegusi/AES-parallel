@@ -5,7 +5,7 @@
  *
  */
 #include "aes256.hpp"
-
+#include <stdio.h>
 /* #define BACK_TO_TABLES */
 
 #ifndef BACK_TO_TABLES
@@ -169,6 +169,16 @@ static void aes_shiftRows(uint8_t *buf)
     buf[6]  = l;
     
 } /* aes_shiftRows */
+static void aes_shiftRows_inv(uint8_t *buf)
+{
+    uint8_t i, j; /* same as above :) */
+    
+    i = buf[1], buf[1] = buf[13], buf[13] = buf[9], buf[9] = buf[5], buf[5] = i;
+    i = buf[2], buf[2] = buf[10], buf[10] = i;
+    j = buf[3], buf[3] = buf[7], buf[7] = buf[11], buf[11] = buf[15], buf[15] = j;
+    j = buf[6], buf[6] = buf[14], buf[14] = j;
+    
+} /* aes_shiftRows_inv */
 
 /* -------------------------------------------------------------------------- */
 static void aes_mixColumns(uint8_t *buf)
@@ -188,6 +198,27 @@ static void aes_mixColumns(uint8_t *buf)
     }
     
 } /* aes_mixColumns */
+
+void aes_mixColumns_inv(uint8_t *buf)
+{
+    uint8_t i, a, b, c, d, e, x, y, z;
+    
+    for (i = 0; i < 16; i += 4)
+    {
+        a = buf[i];
+        b = buf[i + 1];
+        c = buf[i + 2];
+        d = buf[i + 3];
+        e = a ^ b ^ c ^ d;
+        z = rj_xtime(e);
+        x = e ^ rj_xtime(rj_xtime(z ^ a ^ c));
+        y = e ^ rj_xtime(rj_xtime(z ^ b ^ d));
+        buf[i] ^= x ^ rj_xtime(a ^ b);
+        buf[i + 1] ^= y ^ rj_xtime(b ^ c);
+        buf[i + 2] ^= x ^ rj_xtime(c ^ d);
+        buf[i + 3] ^= y ^ rj_xtime(d ^ a);
+    }
+} /* aes_mixColumns_inv */
 
 /* -------------------------------------------------------------------------- */
 static void aes_expandEncKey(uint8_t *k, uint8_t rc)
@@ -219,6 +250,7 @@ static void aes_expandEncKey(uint8_t *k, uint8_t rc)
     
 } /* aes_expandEncKey */
 
+#define FD(x)  (((x) >> 1) ^ (((x) & 1) ? 0x8d : 0))
 void aes_expandDecKey(uint8_t *k, uint8_t *rc)
 {
     uint8_t i;
@@ -247,10 +279,8 @@ void aes256_init(aes256_context *ctx, uint8_t *k)
 {
     uint8_t i;
     
-    for (i = 0; i < sizeof(ctx->key); i++)
-        ctx->enckey[i] = k[i];
+    for (i = 0; i < sizeof(ctx->key); i++) ctx->enckey[i] = k[i];
     
-    for (i = sizeof(ctx->key); ;) aes_expandEncKey(ctx->deckey, &rcon);
     
 } /* aes256_init */
 
@@ -284,6 +314,7 @@ void aes256_encrypt_ecb(aes256_context *ctx, uint8_t *buf)
         else {
             aes_expandEncKey(ctx->key, rcon);
             rcon = rj_xtime(rcon);
+//            printf("%x %d\n",rcon,i);
             aes_addRoundKey(buf, ctx->key);
         }
     }
@@ -292,7 +323,6 @@ void aes256_encrypt_ecb(aes256_context *ctx, uint8_t *buf)
     aes_expandEncKey(ctx->key, rcon);
     aes_addRoundKey(buf, ctx->key);
 } /* aes256_encrypt */
-
 /* -------------------------------------------------------------------------- */
 //uint8为unsigned char(字节）
 static void ctr_inc_ctr(uint8_t *val)
@@ -339,16 +369,26 @@ void aes256_setCtrBlk(aes256_context *ctx, rfc3686_blk *blk)
 /* -------------------------------------------------------------------------- */
 void aes256_encrypt_ctr(aes256_context *ctx, uint8_t *buf, size_t sz)
 {
-    uint8_t key[sizeof(ctx->blk)];
     size_t  i = 0;
-    uint8_t group_size = sizeof(key);
+    int j;
+    uint8_t group_size = sizeof(ctx->blk);
     
     //*关键是每一个group并行化*//
-    while(i < sz) {
-        ctr_clock_keystream(ctx, key);
-        for(int j = 0;j < group_size && i < sz;j++){
-            buf[i++] ^= key[j];
-        }
+    for (i = 0; i < sz / group_size; i++ ) {
+        aes256_context tmp = *ctx;
+        uint8_t key[sizeof(ctx->blk)];
+        for(j = i; j >= 0;j--)
+            ctr_clock_keystream(&tmp, key);
+        for(j = 0;j < group_size;j++)
+            buf[i * group_size + j] ^= key[j];
+        
     }
+//    while(i < sz) {
+//        ctr_clock_keystream(ctx, key);
+//        for(int j = 0;j < group_size && i < sz;j++){
+//            buf[i++] ^= key[j];
+//        }
+//    }
 } /* aes256_encrypt_ctr */
+
 

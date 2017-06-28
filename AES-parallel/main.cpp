@@ -9,6 +9,7 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "aes256.hpp"
 
 #define UNUSED_    __attribute__((unused))
@@ -59,7 +60,8 @@ int main (UNUSED_ int argc, UNUSED_ char *argv[])
         0xAA, 0x62, 0xD9, 0xF8, 0x05, 0x53, 0x2E, 0xDF,
         0xF1, 0xEE, 0xD6, 0x87, 0xFB, 0x54, 0x15, 0x3D
     };
-    uint8_t *buf = nullptr;
+    uint8_t *buf;
+    uint8_t test[1000];
 //    uint8_t buf[] = {
 //        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
 //        0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
@@ -77,10 +79,11 @@ int main (UNUSED_ int argc, UNUSED_ char *argv[])
     uint8_t i;
     
     /*  **********************************************************
-     *   First we test CTR
+     *   Test CTR
      */
     
     read_sequence("tmp", &buf, &length);
+    memcpy(test, buf, length);
     printf("# CTR test\n");
     dump("Text:", buf, length);
     dump("Key:", key, sizeof(key));
@@ -90,33 +93,16 @@ int main (UNUSED_ int argc, UNUSED_ char *argv[])
     
     aes256_encrypt_ctr(&ctx, buf, length);
     dump("Result:", buf, length);
-    rc = mem_isequal(buf, RFC3686_TV9, sizeof(RFC3686_TV9));
-    printf("\t^ %s\n", (rc == 0) ? "Ok" : "INVALID" );
     
     /* reset the counter to decrypt */
     ctr.ctr[0] = ctr.ctr[1] = ctr.ctr[2] = 0;
     ctr.ctr[3] = 1;
     aes256_setCtrBlk(&ctx, &ctr);
-    aes256_decrypt_ctr(&ctx, buf, sizeof(buf));
-    dump("Text:", buf, sizeof(buf));
+    aes256_decrypt_ctr(&ctx, buf, length);
     
-    
-    /* ************************************************************
-     *   Now we test the core AES-256 ECB, just in case
-     */
-    
-    printf("\n# ECB test\n");
-    for (i = 0; i < sizeof(AES256_TV); i++)
-        buf[i] = ((i << 4) & 0xF0) + i;
-    for (i = 0; i < sizeof(key); i++)
-        key[i] = i;
-    dump("Text:", buf, sizeof(AES256_TV));
-    dump("Key:", key, sizeof(key));
-    aes256_init(&ctx, key);
-    aes256_encrypt_ecb(&ctx, buf);
-    dump("Result:", buf, sizeof(AES256_TV));
-    rc = mem_isequal(buf, AES256_TV, sizeof(AES256_TV));
+    rc = mem_isequal(buf, test, length);
     printf("\t^ %s\n", (rc == 0) ? "Ok" : "INVALID" );
+    dump("Text:", buf, length);
     
     aes256_done(&ctx);
     
