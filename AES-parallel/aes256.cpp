@@ -327,12 +327,14 @@ void aes256_encrypt_ecb(aes256_context *ctx, uint8_t *buf)
 //uint8为unsigned char(字节）
 static void ctr_inc_ctr(uint8_t *val)
 {
-    if ( val != NULL )
-        if ( ++val[3] == 0 )
-            if ( ++val[2] == 0 )
-                if ( ++val[1] == 0 )
-                    val[0]++;
-    
+    size_t v3 = val[3] + 1;
+    val[3] = (uint8_t)(v3 % 256);
+    size_t v2 = val[2] + (v3 / 256);
+    val[2] = (uint8_t)(v2 % 256);
+    size_t v1 = val[1] + (v2 / 256);
+    val[1] = (uint8_t)(v1 % 256);
+    size_t v0 = val[0] + (v1 / 256);
+    val[0] = (uint8_t)(v0 % 256);
 } /* ctr_inc_ctr */
 
 /* -------------------------------------------------------------------------- */
@@ -381,7 +383,6 @@ void aes256_encrypt_ctr(aes256_context *ctx, uint8_t *buf, size_t sz)
             ctr_clock_keystream(&tmp, key);
         for(j = 0;j < group_size;j++)
             buf[i * group_size + j] ^= key[j];
-        
     }
 //    while(i < sz) {
 //        ctr_clock_keystream(ctx, key);

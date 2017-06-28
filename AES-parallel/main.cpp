@@ -3,9 +3,6 @@
  *   Based on the code available at http://www.literatecode.com/aes256
  *   Complies with RFC3686, http://tools.ietf.org/html/rfc3686
  *
- *   This demo uses RFC3686 Test Vector #9 for CTR and test vector from
- *   FIPS PUB 197, Appendix C.3 for core ECB
- *
  */
 #include <stdlib.h>
 #include <stdio.h>
@@ -85,14 +82,15 @@ int main (UNUSED_ int argc, UNUSED_ char *argv[])
     read_sequence("tmp", &buf, &length);
     memcpy(test, buf, length);
     printf("# CTR test\n");
-    dump("Text:", buf, length);
-    dump("Key:", key, sizeof(key));
+//    dump("Text:", buf, length);
+//    dump("Key:", key, sizeof(key));
     
+    /*  Encryption string */
     aes256_init(&ctx, key);
     aes256_setCtrBlk(&ctx, &ctr);
-    
     aes256_encrypt_ctr(&ctx, buf, length);
-    dump("Result:", buf, length);
+//    dump("Result:", buf, length);
+    
     
     /* reset the counter to decrypt */
     ctr.ctr[0] = ctr.ctr[1] = ctr.ctr[2] = 0;
@@ -100,12 +98,12 @@ int main (UNUSED_ int argc, UNUSED_ char *argv[])
     aes256_setCtrBlk(&ctx, &ctr);
     aes256_decrypt_ctr(&ctx, buf, length);
     
-    rc = mem_isequal(buf, test, length);
+    /* Test if answer is right */
+    rc = mem_isequal(buf, test, length < 1000 ? length : 1000);
     printf("\t^ %s\n", (rc == 0) ? "Ok" : "INVALID" );
-    dump("Text:", buf, length);
+//    dump("Text:", buf, length);
     
     aes256_done(&ctx);
-    
     return 0;
 } /* main */
 
@@ -118,7 +116,6 @@ void dump(char *s, uint8_t *buf, size_t sz)
     printf("%s\n\t", s);
     for (i = 0; i < sz; i++)
         printf("%02x ",buf[i]);
-//        printf("%02x%s", buf[i], ((i % 16 == 15) && (i < sz - 1)) ? "\n\t" : " ");
     printf("\n");
 } /* dump */
 
