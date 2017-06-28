@@ -6,6 +6,7 @@
  */
 #include "aes256.hpp"
 #include <stdio.h>
+
 /* #define BACK_TO_TABLES */
 
 #ifndef BACK_TO_TABLES
@@ -112,7 +113,7 @@ static uint8_t rj_xtime(uint8_t x)
 /* -------------------------------------------------------------------------- */
 static void aes_subBytes(uint8_t *buf)
 {
-     uint8_t i;
+    uint8_t i;
     
     for (i = 0; i < 16; i++)
         buf[i] = rj_sbox(buf[i]);
@@ -314,7 +315,7 @@ void aes256_encrypt_ecb(aes256_context *ctx, uint8_t *buf)
         else {
             aes_expandEncKey(ctx->key, rcon);
             rcon = rj_xtime(rcon);
-//            printf("%x %d\n",rcon,i);
+            //            printf("%x %d\n",rcon,i);
             aes_addRoundKey(buf, ctx->key);
         }
     }
@@ -325,9 +326,10 @@ void aes256_encrypt_ecb(aes256_context *ctx, uint8_t *buf)
 } /* aes256_encrypt */
 /* -------------------------------------------------------------------------- */
 //uint8为unsigned char(字节）
-static void ctr_inc_ctr(uint8_t *val)
+//对counter进行加id操作
+static void ctr_inc_ctr(uint8_t *val, size_t id)
 {
-    size_t v3 = val[3] + 1;
+    size_t v3 = val[3] + id;
     val[3] = (uint8_t)(v3 % 256);
     size_t v2 = val[2] + (v3 / 256);
     val[2] = (uint8_t)(v2 % 256);
@@ -336,28 +338,28 @@ static void ctr_inc_ctr(uint8_t *val)
     size_t v0 = val[0] + (v1 / 256);
     val[0] = (uint8_t)(v0 % 256);
 } /* ctr_inc_ctr */
-
 /* -------------------------------------------------------------------------- */
 //individual task
-static void ctr_clock_keystream(aes256_context *ctx, uint8_t *ks)
+static void ctr_clock_keystream(aes256_context *ctx, uint8_t *ks,size_t id)
 {
     uint8_t i;
     uint8_t *p = (uint8_t *)&ctx->blk;
     
     if ( (ctx != NULL) && (ks != NULL) ) {
+        ctr_inc_ctr(&ctx->blk.ctr[0], id);
         for (i = 0; i < sizeof(ctx->blk); i++)
             ks[i] = p[i];
         //生成了扩展的密钥（用于之后的异或）
         aes256_encrypt_ecb(ctx, ks);
         
         //*每一步加一(这里应该先算出来存在数组里以便kernel调用）*//
-        ctr_inc_ctr(&ctx->blk.ctr[0]);
+        //ctr_inc_ctr(&ctx->blk.ctr[0]);
     }
     //结果存在ks里面
 } /* ctr_clock_keystream */
 
 /* -------------------------------------------------------------------------- */
-
+//初始化设置block
 void aes256_setCtrBlk(aes256_context *ctx, rfc3686_blk *blk)
 {
     uint8_t i, *p = (uint8_t *)&ctx->blk, *v = (uint8_t *)blk;
@@ -369,27 +371,20 @@ void aes256_setCtrBlk(aes256_context *ctx, rfc3686_blk *blk)
 } /* aes256_setCtrBlk */
 
 /* -------------------------------------------------------------------------- */
+//此处是并行化关键
 void aes256_encrypt_ctr(aes256_context *ctx, uint8_t *buf, size_t sz)
 {
     size_t  i = 0;
     int j;
     uint8_t group_size = sizeof(ctx->blk);
     
-    //*关键是每一个group并行化*//
     for (i = 0; i < sz / group_size; i++ ) {
         aes256_context tmp = *ctx;
         uint8_t key[sizeof(ctx->blk)];
-        for(j = i; j >= 0;j--)
-            ctr_clock_keystream(&tmp, key);
+        ctr_clock_keystream(&tmp, key,i);
         for(j = 0;j < group_size;j++)
             buf[i * group_size + j] ^= key[j];
     }
-//    while(i < sz) {
-//        ctr_clock_keystream(ctx, key);
-//        for(int j = 0;j < group_size && i < sz;j++){
-//            buf[i++] ^= key[j];
-//        }
-//    }
 } /* aes256_encrypt_ctr */
 
 
